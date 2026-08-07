@@ -47,7 +47,6 @@ app.*.map.json
 # Firebase / secrets — asla commit etme
 **/google-services.json
 **/GoogleService-Info.plist
-firebase_options.dart
 .env
 .env.*
 *.jks

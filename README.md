@@ -36,7 +36,9 @@ flutter run
 ## Dokümanlar
 
 - [`docs/urun-dokumani.md`](docs/urun-dokumani.md) — ürün v0.1  
-- [`docs/gorev-bolumleme.md`](docs/gorev-bolumleme.md) — Adem / Kirwe iş bölümü  
+- [`docs/gorev-bolumleme.md`](docs/gorev-bolumleme.md) — ilk iş bölümü taslağı  
+- [`docs/adem-gorev-rehberi.md`](docs/adem-gorev-rehberi.md) — Adem full-stack rehber v1.0 (giriş önce)  
+- [`docs/kirwe-gorev-rehberi.md`](docs/kirwe-gorev-rehberi.md) — Kirwe full-stack rehber v1.0 (giriş önce)  
 - [`docs/roomie-vs-campusflow-rapor.md`](docs/roomie-vs-campusflow-rapor.md) — eski Roomie analizi  
 - [`docs/sistem-diyagramlari.md`](docs/sistem-diyagramlari.md) — mimari diyagramlar  
 
