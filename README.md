@@ -9,8 +9,8 @@
 |--------|--------|
 | Mobil | Flutter (iOS + Android) |
 | Backend | Firebase (Auth, Firestore, Storage, FCM) |
-| State | _Kirwe + Adem: Provider **veya** Riverpod — tek seçim yazın_ |
-| Routing | _GoRouter evet/hayır — yazın_ |
+| State | **Riverpod** |
+| Routing | **GoRouter** (evet) |
 | Flutter | stable (kurulu: 3.44.x / Dart 3.12.x) |
 
 Supabase şimdilik yok. Roomie (Kotlin) sadece referans; bu repo yeşil alan.
