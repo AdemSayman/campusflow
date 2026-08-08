@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-/// Bottom navigation shell for Evim / Keşfet / Profil.
+/// Ana kabuk: üstte AppBar, ortada aktif sekme, altta 3 tab.
+/// StatefulNavigationShell = GoRouter'ın sekme yöneticisi.
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.navigationShell});
 
+  /// Hangi sekme aktif + sekme içeriğini çizen shell nesnesi.
   final StatefulNavigationShell navigationShell;
 
+  /// Alt bardan sekme seçilince ilgili dala git.
   void _onTap(int index) {
     navigationShell.goBranch(
       index,
+      // Aynı sekmeye tekrar tıklanınca o dalın ilk rotasına dön.
       initialLocation: index == navigationShell.currentIndex,
     );
   }
@@ -20,8 +24,10 @@ class AppShell extends StatelessWidget {
       appBar: AppBar(
         title: const Text('CampusFlow'),
       ),
+      // Ortada o anki sekmenin sayfası (/home, /discover, /profile).
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
+        // 0 Evim, 1 Keşfet, 2 Profil
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: _onTap,
         destinations: const [
