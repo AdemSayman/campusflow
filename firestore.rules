@@ -1,0 +1,73 @@
+rules_version = '2';
+
+// Roomie — Firestore Rules v1 (K1 sonrası güncellendi)
+// Varsayılan: her şey KAPALI.
+// K1 kapsamı: users.currentHouseId, houses, houses/memberships, houseCodes.
+//
+// v0 -> v1 değişiklikleri (K1 kodu yazılırken bulundu, önemli):
+// 1) houses.update artık sadece owner değil, "üye olan/olacak" herkese açık.
+//    Neden: davet koduyla katılan biri houses/{id}.memberIds alanına kendini
+//    eklemek zorunda; eski kural bunu owner olmayanlara yasaklıyordu.
+// 2) YENİ houseCodes/{code} koleksiyonu eklendi: davet kodu → houseId eşlemesi.
+//    Neden: "koda göre evi bul" işlemi, henüz üyesi olmadığın bir evi Firestore
+//    sorgusuyla aramayı gerektiriyordu — houses.read kuralı sadece üyelere
+//    açık olduğu için bu sorgu güvenlik kurallarınca reddediliyordu. Kod ->
+//    houseId eşlemesini, içinde hassas veri olmayan (sadece houseId'ye
+//    işaret eden) ayrı bir koleksiyonda tutup herkese (giriş yapmış) açtık.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Varsayılan olarak tanımlanmamış her koleksiyon kapalı
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // users: herkes (giriş yapmış) temel profil bilgisini okuyabilir,
+    // sadece kendi dokümanını yazabilir.
+    match /users/{uid} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // houses: sadece üyeler okuyabilir; herkes (giriş yapmış) yeni ev
+    // oluşturabilir (kendini owner + ilk üye yaparak); güncelleme, o an
+    // üye olan ya da üye olmak üzere olan (join/leave sırasında) herkese
+    // açık — K2'de "sadece memberIds alanına dokunulabilir" şeklinde
+    // sıkılaştırılacak (TODO). Silme sadece owner'a açık.
+    match /houses/{houseId} {
+      allow read: if request.auth != null &&
+                     request.auth.uid in resource.data.memberIds;
+      allow create: if request.auth != null &&
+                     request.auth.uid == request.resource.data.createdBy &&
+                     request.auth.uid in request.resource.data.memberIds;
+      allow update: if request.auth != null &&
+                     (request.auth.uid in resource.data.memberIds ||
+                      request.auth.uid in request.resource.data.memberIds);
+      allow delete: if request.auth != null &&
+                     request.auth.uid == resource.data.createdBy;
+
+      // memberships: kullanıcı sadece kendi üyelik kaydını yazabilir
+      match /memberships/{uid} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+
+      // expenses: K2'ye kadar sadece "giriş yapmış + ev üyesi" kontrolü,
+      // K2'de daha sıkı kurallara (paidBy/splitBetween doğrulaması) bağlanacak.
+      match /expenses/{expenseId} {
+        allow read, write: if request.auth != null &&
+                     request.auth.uid in get(/databases/$(database)/documents/houses/$(houseId)).data.memberIds;
+      }
+    }
+
+    // houseCodes: davet kodu → houseId eşlemesi. İçinde hassas bilgi yok,
+    // bu yüzden herkese (giriş yapmış) okunabilir; eve katılma akışı bunu
+    // kullanır. Kodlar sabittir; değişecekse yeni kod üretilir (update yok).
+    match /houseCodes/{code} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if false;
+    }
+  }
+}

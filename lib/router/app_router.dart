@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../features/auth/login_page.dart';
 import '../features/auth/register_page.dart';
 import '../features/discover/discover_placeholder_page.dart';
+import '../features/home/create_house_page.dart';
 import '../features/home/home_placeholder_page.dart';
+import '../features/home/join_house_page.dart';
 import '../features/profile/profile_placeholder_page.dart';
 import '../providers/auth_provider.dart';
 import 'app_shell.dart';
@@ -83,6 +85,21 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 path: '/home',
                 name: 'home',
                 builder: (context, state) => const HomePlaceholderPage(),
+                routes: [
+                  // /home/create — ev yokken "Ev Oluştur" formu.
+                  // Alt route olduğu için shell'in üstüne (tam ekran) push'lanır.
+                  GoRoute(
+                    path: 'create',
+                    name: 'home-create',
+                    builder: (context, state) => const CreateHousePage(),
+                  ),
+                  // /home/join — ev yokken "Davet Koduyla Katıl" formu.
+                  GoRoute(
+                    path: 'join',
+                    name: 'home-join',
+                    builder: (context, state) => const JoinHousePage(),
+                  ),
+                ],
               ),
             ],
           ),
