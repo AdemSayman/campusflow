@@ -144,6 +144,16 @@ class _HouseView extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 16),
+        Card(
+          child: ListTile(
+            leading: const Icon(Icons.receipt_long_outlined),
+            title: const Text('Giderler'),
+            subtitle: const Text('Ortak harcamalar ve net borç durumu'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/home/expenses'),
+          ),
+        ),
+        const SizedBox(height: 16),
         Text('Üyeler', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
         membersAsync.when(
