@@ -1,8 +1,9 @@
 rules_version = '2';
 
-// Roomie — Firestore Rules v1 (K1 sonrası güncellendi)
+// Roomie — Firestore Rules v2 (K2 sonrası güncellendi)
 // Varsayılan: her şey KAPALI.
 // K1 kapsamı: users.currentHouseId, houses, houses/memberships, houseCodes.
+// K2 kapsamı: houses/expenses.
 //
 // v0 -> v1 değişiklikleri (K1 kodu yazılırken bulundu, önemli):
 // 1) houses.update artık sadece owner değil, "üye olan/olacak" herkese açık.
@@ -14,6 +15,16 @@ rules_version = '2';
 //    açık olduğu için bu sorgu güvenlik kurallarınca reddediliyordu. Kod ->
 //    houseId eşlemesini, içinde hassas veri olmayan (sadece houseId'ye
 //    işaret eden) ayrı bir koleksiyonda tutup herkese (giriş yapmış) açtık.
+//
+// v1 -> v2 değişiklikleri (K2 kodu yazılırken sıkılaştırıldı):
+// 3) expenses.create artık paidBy == kendi uid'in olmasını ve splitBetween'in
+//    sadece ev üyelerinden oluşmasını (hasOnly) zorunlu kılıyor — başka
+//    birinin adına gider girilemez, evde olmayan biri bölüşüme eklenemez.
+// 4) expenses.update artık iki duruma ayrıldı: gideri ekleyen (paidBy) her
+//    alanı değiştirebilir; diğer üyeler SADECE "settled" alanını değiştirebilir
+//    (yani "kapandı" işaretlemeyi herkes yapabilir, ama tutarı/kim ödediğini
+//    sadece ekleyen değiştirebilir).
+// 5) expenses.delete sadece paidBy'a açık.
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -53,11 +64,30 @@ service cloud.firestore {
         allow write: if request.auth != null && request.auth.uid == uid;
       }
 
-      // expenses: K2'ye kadar sadece "giriş yapmış + ev üyesi" kontrolü,
-      // K2'de daha sıkı kurallara (paidBy/splitBetween doğrulaması) bağlanacak.
+      // expenses: sadece ev üyeleri okuyabilir. Oluşturma: kendi adına
+      // (paidBy == kendi uid) ve sadece ev üyeleriyle (splitBetween ⊆
+      // memberIds) gider girilebilir. Güncelleme: ekleyen (paidBy) her şeyi
+      // değiştirebilir; diğer üyeler sadece "settled" alanını değiştirebilir.
+      // Silme: sadece ekleyen (paidBy).
       match /expenses/{expenseId} {
-        allow read, write: if request.auth != null &&
+        allow read: if request.auth != null &&
                      request.auth.uid in get(/databases/$(database)/documents/houses/$(houseId)).data.memberIds;
+
+        allow create: if request.auth != null &&
+                     request.auth.uid in get(/databases/$(database)/documents/houses/$(houseId)).data.memberIds &&
+                     request.auth.uid == request.resource.data.paidBy &&
+                     request.resource.data.splitBetween.size() > 0 &&
+                     request.resource.data.splitBetween.hasOnly(
+                       get(/databases/$(database)/documents/houses/$(houseId)).data.memberIds
+                     );
+
+        allow update: if request.auth != null &&
+                     request.auth.uid in get(/databases/$(database)/documents/houses/$(houseId)).data.memberIds &&
+                     (request.auth.uid == resource.data.paidBy ||
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['settled']));
+
+        allow delete: if request.auth != null &&
+                     request.auth.uid == resource.data.paidBy;
       }
     }
 

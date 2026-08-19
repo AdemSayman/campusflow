@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../features/auth/login_page.dart';
 import '../features/auth/register_page.dart';
 import '../features/discover/discover_placeholder_page.dart';
+import '../features/expenses/add_expense_page.dart';
+import '../features/expenses/expenses_page.dart';
 import '../features/home/create_house_page.dart';
 import '../features/home/home_placeholder_page.dart';
 import '../features/home/join_house_page.dart';
@@ -98,6 +100,20 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     path: 'join',
                     name: 'home-join',
                     builder: (context, state) => const JoinHousePage(),
+                  ),
+                  // /home/expenses — Giderler listesi + net bakiye (K2).
+                  GoRoute(
+                    path: 'expenses',
+                    name: 'home-expenses',
+                    builder: (context, state) => const ExpensesPage(),
+                    routes: [
+                      // /home/expenses/add — "Gider Ekle" formu.
+                      GoRoute(
+                        path: 'add',
+                        name: 'home-expenses-add',
+                        builder: (context, state) => const AddExpensePage(),
+                      ),
+                    ],
                   ),
                 ],
               ),
